@@ -1,0 +1,97 @@
+ <!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Hibajavító Kódolás</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="main.js"></script>
+  </head>
+  <body style="background-color: #26a69a" onblur="start()">
+    <div id="forras" style="background-color: #fff; border-radius: 60px; margin: 10px 10%; box-shadow: 1px 1px 5px #555555">
+        <h5 style="padding: 2% 0 0 5%">Forrás</h5>
+        <div style="padding-left: 5%" class="row">
+            <div class="input-field col s6">
+                <input id="u" type="text" oninput="start();" class="active" value="010101010101">
+                <label for="u">u:</label>
+            </div>
+            <a id="random" class="waves-effect waves-light btn-large" onclick="const a = document.getElementById('u'); a.value=randomWord(); a.oninput();" >Random</a>
+        </div>
+    </div>
+    <div id="kodolo" style="background-color: #fff; border-radius: 60px; margin: 10px 10%; box-shadow: 1px 1px 5px #555555">
+        <h5 style="padding: 2% 0 0 5%">Kódoló</h5>
+        <div style="padding-left: 5%" class="row">
+
+            <div class="input-field col s12">
+                <label for="eljaras">Kódolási eljárás:</label> <br><br>
+                <select id="eljaras" class="browser-default" onchange="start()">
+                  <option value="1">Redundáns x2</option>
+                  <option value="2">Redundáns x3</option>
+                  <option value="3">Hamming kód (max 12 hosszú üzenet)</option>
+                  <option value="4">Bináris GF(q) Hamming kód TODO</option>
+                </select>
+            </div>
+
+            <div class="input-field s8 col">
+                <input id="parity" type="text" readonly="true" class="active">
+                <label for="parity">Parity:</label>
+            </div><br>
+
+            <div class="input-field col s6">
+                <textarea id="c" type="text" readonly="true" class="materialize-textarea active"></textarea>
+                <label for="c">c:</label>
+            </div>
+        </div>
+    </div>
+    <div id="csatorna" style="background-color: #fff; border-radius: 60px; margin: 10px 10%; box-shadow: 1px 1px 5px #555555">
+        <h5 style="padding: 2% 0 0 5%">Csatorna</h5>
+        <div style="padding-left: 5%" class="row">
+        
+            <p class="range-field col s6">
+                <label id="l_hibas_bitek" for="hibas_bitek">Hibás bitek: 0%</label>
+                <input id="hibas_bitek" type="range" min="0" max="100" value=0 onchange="generate_e(); start();" class="active">
+            </p>
+        
+            <div class="input-field col s6">
+                <input id="e" type="text" oninput="generate_hibas_bitek_szazaleka(); start();" class="active" value="0" >
+                <label for="e">e:</label>
+            </div>
+        </div>
+        <div style="padding-left: 5%" class="row">
+            <div class="input-field col s6">
+                <textarea id="v" type="text" readonly="true" class="materialize-textarea active"></textarea> 
+                <label for="v">v:</label>
+            </div>
+        </div>
+    </div>
+    <div id="dekodolo" style="background-color: #fff; border-radius: 60px; margin: 10px 10%; box-shadow: 1px 1px 5px #555555">
+        <h5 style="padding: 2% 0 0 5%">Dekódoló</h5>
+        <div style="padding-left: 5%" class="row">
+            <div class="input-field s6 col">
+                <input id="parity2" type="text" readonly="true" class="active">
+                <label for="parity2">Parity:</label>
+            </div>
+            <div class="input-field s6 col">
+                <input id="error_index" type="text" readonly="true" class="active">
+                <label for="error_index">Error index:</label>
+            </div>
+            <div class="input-field col s6">
+                <input id="u2" type="text" readonly="true" class="active">
+                <label for="u2'">u':</label>
+            </div>
+        </div>
+    </div>
+    <div id="nyelo" style="background-color: #fff; border-radius: 60px; margin: 10px 10%; box-shadow: 1px 1px 5px #555555">
+        <h5 style="padding: 2% 0 0 5%">Nyelő</h5>
+        <div style="padding-left: 5%" class="row">
+            <div class="input-field col s6">
+                <input id="u3" type="text" readonly="true" class="active">
+                <label for="u3">u':</label>
+            </div>
+        </div>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script type="text/javascript">start();</script>
+  </body>
+</html>
