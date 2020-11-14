@@ -10,16 +10,16 @@ class Signal
     setValue = (value) => {this._value = value;}
     getValue = () => {return this._value;}
     toString = () => {return this.getValue();}
-    updateHTMLValue = () => 
+    updateHTMLValue = (charLength) => 
     {
         let theHTMLValue = this._value;
-        const offset = theHTMLValue.length%8;
-        for (var i = 0; i < (theHTMLValue.length/8); i++)
-            theHTMLValue = insertAt(theHTMLValue,(i)*8+i+offset,"\n");
+        const offset = theHTMLValue.length%charLength;
+        for (var i = 0; i < (theHTMLValue.length/charLength); i++)
+            theHTMLValue = insertAt(theHTMLValue,(i)*charLength+i+offset,"\n");
 
         this._element.value = theHTMLValue;
     };
-    updateHTMLValueHamming = () => 
+    updateHTMLValueHamming = (charLength) => 
     {
         let theHTMLValue = this._value;
 
@@ -33,15 +33,15 @@ class Signal
                 theHTMLValueHamming += " "+theHTMLValue[i]+" ";
         }
 
-        for (var i = Math.ceil(theHTMLValueHamming.length/(3*8))-1; i >= 1; i--)
-            theHTMLValueHamming = insertAt(theHTMLValueHamming,(i)*(3*8),"\n");
+        for (var i = Math.ceil(theHTMLValueHamming.length/(3*charLength))-1; i >= 1; i--)
+            theHTMLValueHamming = insertAt(theHTMLValueHamming,(i)*(3*charLength),"\n");
 
 
         this._element.value = theHTMLValueHamming;
     };
     setValueFromHTMLValue = () =>
     {
-        this._value = this._element.value.replace(/([^01])/gm, "");
+        this._value = this._element.value.replace(/([^0123456789abcdefABCDEF])/gm, "");
     }
     updateSize = () =>
     {
@@ -92,10 +92,10 @@ const add0 = (n,str) =>
     return "0".repeat(n-str.length)+str;
 }
 
-const XOR = (a,b) =>
+const XOR = (a,b,q) =>
 {
     let ret = "";
-    for (i in a) ret += (a[i]===b[i] ? '0' : '1'); //Bitwise XOR
+    for (i in a) ret += ( parseInt(a[i],q) ^ parseInt(b[i],q) ).toString(q); //Bitwise XOR
     return ret;
 }
 
@@ -110,7 +110,7 @@ const generate_e = () =>
 {
     const hibas_bitek_szazaleka = document.getElementById('hibas_bitek').value;
     const e = document.getElementById('e');
-    const c_v = document.getElementById('c').value.replace(/(\r\n|\n|\r)/gm, "");
+    const c_v = document.getElementById('c').value.replace(/([\r\n ()])/gm, "");
 
 
     let ret = "0".repeat(c_v.length);
@@ -127,7 +127,7 @@ const generate_e = () =>
 const generate_hibas_bitek_szazaleka = () =>
 {
     const hibas_bitek = document.getElementById('hibas_bitek');
-    const c_v = document.getElementById('c').value.replace(/(\r\n|\n|\r|)/gm, "");;
+    const c_v = document.getElementById('c').value.replace(/([\r\n ()])/gm, "");;
     const e_v = document.getElementById('e').value;
     hibas_bitek.value = ((e_v.split("1").length - 1)/c_v.length)*100;
 
@@ -145,14 +145,19 @@ const start = () =>
     const u2 = new Signal('u2');
 
     //Forrás
-    const input = document.getElementById('input').value;
+    const input      = document.getElementById('input').value;
+    const qElement   = document.getElementById('q');
+    if (qElement.value*1>16) qElement.value = "16"; else if (qElement.value*1<"2") qElement.value="2";
+    const q          = qElement.value;
+    const charLength = Math.ceil(logBase(q,256)); // Base 2-be = 8; 16-ba: 2;
+
     if (input && input !== "")
     {
         let val = "";
         for (var i = 0; i < input.length; i++)
-            val+= add0(8,input[i].charCodeAt(0).toString(2));
+            val+= add0(charLength,input[i].charCodeAt(0).toString(q));
         u.setValue(val);
-        u.updateHTMLValue();
+        u.updateHTMLValue(charLength);
     }else
     {
         u.setValueFromHTMLValue();
@@ -166,17 +171,19 @@ const start = () =>
     {
         case 1: //Redundáns x2
             c.setValue(u.getValue().repeat(2));
-            c.updateHTMLValue();
+            c.updateHTMLValue(charLength);
             break;
         case 2: //Redundáns x3
             c.setValue(u.getValue().repeat(3));
-            c.updateHTMLValue();
+            c.updateHTMLValue(charLength);
             break;
-        case 3: //Hamming kód {m:16,r:4}
-            c.setValue(hamming_encode(u.getValue()));
-            c.updateHTMLValueHamming();
+        case 3: //Hamming kód (1 dim block)
+
+            if (q*1===2) c.setValue(binary_hamming_encode(u.getValue()));
+            else         c.setValue(       hamming_encode(u.getValue(),q));
+            c.updateHTMLValueHamming(charLength);
             break;
-        case 4: //Bináris GF(q) Hamming kód
+        case 4: //Hamming kód (több fix block) 
             c.setValue("TODO");
             break;
     }
@@ -184,14 +191,15 @@ const start = () =>
     //Csatorna
     const e = new Signal('e');
     e.setValueFromHTMLValue();
+    if (e.getValue().length > c.getValue().length) e.setValue("0"); //reset if its bigger
     e.setValue(add0(c.getValue().length,e.getValue()));
-    e.updateHTMLValue();
-    v.setValue(XOR(c.getValue(),e.getValue()));
+    e.updateHTMLValue(charLength);
+    v.setValue(XOR(c.getValue(),e.getValue(),q));
 
     if (1*eljaras>2)
-        v.updateHTMLValueHamming();
+        v.updateHTMLValueHamming(charLength);
     else 
-        v.updateHTMLValue();
+        v.updateHTMLValue(charLength);
 
 
     //Dekódoló
@@ -205,29 +213,24 @@ const start = () =>
         case 2: //Redundáns x3
             red(v,u2,3);
             break;
-        case 3:
-            hamming_decode(v.getValue(),u2);
+        case 3: //Hamming kód (1 dim block)
+            if (q*1===2) u2.setValue(binary_hamming_decode(v.getValue()));
+            else         u2.setValue(       hamming_decode(v.getValue(),q));
             break;
-        case 4: //Bináris GF(q) Hamming kód
+        case 4: //Hamming kód (több fix block)
             break;
     }
 
-    u2.updateHTMLValue();
-
-    //---
-    const uv  = add0(u2.getValue().length,u.getValue());
-    const u2v = add0(uv.length,u2.getValue());
-    //log(uv === u2v,uv,u2v,v.getValue());
-    //---
+    u2.updateHTMLValue(charLength);
 
     //Nyelő
 
     const output = document.getElementById('output');
     let out = "";
-    for (var i = u2.getValue().length; i >= 8; i-=8) 
+    for (var i = u2.getValue().length; i >= charLength; i-=charLength)
     {
-        const char = u2.getValue().substring(i-8,i); //Only ASCII!!
-        if (parseInt(char,2) !== 0) out += String.fromCharCode(parseInt(char,2));
+        const char = u2.getValue().substring(i-charLength,i); //Only ASCII!!
+        if (parseInt(char,q) !== 0) out += String.fromCharCode(parseInt(char,q));
     }
     output.value = out.split("").reverse().join(""); //Reverse
 
@@ -246,15 +249,31 @@ const merger = (arr) =>
     let ret = "";
     for (var i = 0; i < arr[0].length; i++) 
     {   
-        const values = {0:0,1:0};
-        for (j in arr) for (var k = j; k < arr.length; k++)
+        //Megszámoljuk melyikből mennyi van
+        const values = {};
+        for (j in arr) for (let k = j; k < arr.length; k++)
         {
             if (j===k) continue;
-            if (arr[k][i] === arr[j][i]) values[arr[k][i]]++;
+            console.log(arr[k][i],arr[j][i])
+            if (arr[k][i] === arr[j][i]) 
+            {
+                if (!(arr[k][i] in values)) values[arr[k][i]]=0;
+                values[arr[k][i]]++;
+            }
         }
-        if      (values['0']>values['1']) ret+='0';
-        else if (values['0']<values['1']) ret+='1';
-        else ret+='?';
+
+        console.log(values);
+
+        //Kiválasszuk a legnagyobbat, ha két legnagyobb megegyezik "?"-et add vissza.
+        let maxV = {j:"?",v:-1}
+        for (j in values)
+        {
+            if (values[j]>maxV.v) {maxV.v=values[j]; maxV.j=j;}
+            else if (values[j]===maxV.v) {maxV.j="?"}
+        }
+
+        ret+=""+maxV.j;
+        
     }
     return ret;
 }
@@ -385,7 +404,7 @@ const red = (v,u2,divident) =>
 }
 */
 
-const hamming_encode = (u) =>
+const binary_hamming_encode = (u) =>
 {   
     // 2**numOfParityBit == blockSize
     const blockSize = roundUpPow2(u.length+Math.round(logBase(2,u.length))); //Megkeresi az ideális blokk méretet
@@ -402,7 +421,7 @@ const hamming_encode = (u) =>
     {
         if (ret[i] !== '1') continue; // Ha 1 akkor 
         num = i.toString(2); num = add0(numOfParityBit,num); // az indexet numOfParityBit bites binárissá alakítom
-        parity = XOR(parity,num); // És össze XOR-olom őket: paritását adja meg.
+        parity = XOR(parity,num,2); // És össze XOR-olom őket: paritását adja meg.
     }
 
     document.getElementById('parity').value = parity;
@@ -413,7 +432,7 @@ const hamming_encode = (u) =>
     return ret;
 }
 
-const hamming_decode = (v,u2) =>
+const binary_hamming_decode = (v) =>
 {
     // 2**numOfParityBit == blockSize
     const blockSize = v.length;
@@ -425,7 +444,7 @@ const hamming_decode = (v,u2) =>
     {
         if (v[i] !== '1') continue; // Ha 1 akkor 
         num = i.toString(2); num = add0(numOfParityBit,num); // az indexet numOfParityBit bites binárissá alakítom
-        parity = XOR(parity,num); // És össze XOR-olom őket: paritását adja meg.
+        parity = XOR(parity,num,2); // És össze XOR-olom őket: paritását adja meg.
     }
 
     document.getElementById('parity2').value = parity;
@@ -441,5 +460,17 @@ const hamming_decode = (v,u2) =>
     document.getElementById('error_index').value = error_index;
 
     for (let i in parity) ret = removeAt(ret,2**(parity.length-i-1)); //Kiszedjük a paritásokat az üzenetből
-    u2.setValue(ret);
+
+    return ret;
+}
+
+
+const hamming_encode = (u,q) =>
+{
+    return "TODO";
+}
+
+const hamming_decode = (v,q) =>
+{
+    return "TODO";
 }

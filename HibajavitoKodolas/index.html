@@ -28,6 +28,12 @@
    </div>
    <a id="random" class="waves-effect waves-light btn-large" onclick="const a = document.getElementById('input'); a.value=randomWord(); a.oninput();" >Random</a>
   </div>
+  <div style="padding-left: 5%" class="row">
+   <div class="input-field col s6">
+    <input id="q" type="number" onchange="start();" class="active" value="2" min="2" max="16">
+    <label for="q">q:</label>
+   </div>
+  </div>
  </div>
 
  <div style="background-color: #fff; border-radius: 60px; margin: 10px 20%; box-shadow: 1px 1px 5px #555555">
@@ -49,8 +55,8 @@
     <select id="eljaras" class="browser-default" onchange="start()">
       <option value="1">Redundáns x2</option>
       <option value="2">Redundáns x3</option>
-      <option value="3">Hamming kód (dinamikusan növő blokk mérettel)</option>
-      <option value="4">Bináris GF(q) Hamming kód TODO</option>
+      <option value="3">Hamming kód (Egy dinamikusan növő blokkal)</option>
+      <option value="4">Hamming kód (Több fix méretű blokkal TODO)</option>
     </select>
    </div>
    <div class="input-field">
