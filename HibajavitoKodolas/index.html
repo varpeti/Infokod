@@ -11,6 +11,7 @@
   textarea 
   {
    font-family: monospace;
+   word-wrap: normal;
   }
  </style>
   </head>
@@ -30,7 +31,7 @@
   </div>
   <div style="padding-left: 5%" class="row">
    <div class="input-field col s3">
-    <input id="q" type="number" onchange="start();" class="active" value="2" min="2" max="16">
+    <input id="q" type="number" onchange="start();" class="active" value="2" min="2" max="36">
     <label for="q">q:</label>
    </div>
    <div class="input-field col s3">
@@ -40,6 +41,10 @@
    <div class="input-field col s3">
     <input id="n" type="text" readonly="true" class="active">
     <label for="n">n:</label>
+   </div>
+   <div class="input-field col s2">
+    <input id="charLength" type="text" readonly="true" class="active">
+    <label for="charLength">charLength:</label>
    </div>
   </div>
  </div>
@@ -58,21 +63,39 @@
 
  <div id="kodolo" style="background-color: #fff; border-radius: 60px; margin: 10px 10%; box-shadow: 1px 1px 5px #555555">
   <h5 style="padding: 2% 0 0 5%">Kódoló</h5>
+
   <div style="padding-left: 5%; padding-right: 5%" class="row">
+
    <div class="input-field">
     <label for="eljaras">Kódolási eljárás:</label> <br><br>
     <select id="eljaras" class="browser-default" onchange="start()">
       <option value="1">Redundáns x2</option>
       <option value="2">Redundáns x3</option>
-      <option value="3">Hamming kód (Egy dinamikusan növő blokkal)</option>
-      <option value="4">Hamming kód (Több fix méretű blokkal TODO)</option>
+      <option value="3">Bináris Hamming kód (Egy dinamikusan növő blokkal)</option>
+      <option value="4">GF(q) (n,n-2) Hamming kód (Egy fix hosszú kóddal)</option>
     </select>
    </div>
-   <div class="input-field">
+  </div>
+
+  <div style="padding-left: 5%;"" class="row">
+
+   <div class="input-field col s3">
     <input id="parity" type="text" readonly="true" class="active">
     <label for="parity">Parity:</label>
    </div>
+
+   <div class="input-field col s3">
+    <textarea id="H" type="text" readonly class="materialize-textarea active"></textarea>
+    <label for="H">H:</label>
+   </div>
+
+   <div class="input-field col s3">
+    <textarea id="G" type="text" readonly class="materialize-textarea active"></textarea>
+    <label for="G">G:</label>
+   </div>
+
   </div>
+
  </div>
 
  <div style="background-color: #fff; border-radius: 60px; margin: 10px 20%; box-shadow: 1px 1px 5px #555555">

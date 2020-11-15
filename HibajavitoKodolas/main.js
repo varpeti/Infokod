@@ -21,23 +21,19 @@ class Signal
 
         this._element.value = theHTMLValue;
     };
-    updateHTMLValueHamming = (charLength,q) => 
+    updateHTMLValueHamming = (charLength,q,n,k) => 
     {
         let theHTMLValue = this._value;
 
         let theHTMLValueHamming = "";
-        if (q===2)
-            for (let i in theHTMLValue)
-            {
-                let lbi = logBase(2,i);
-                if ( Math.floor(lbi)===lbi && i>0) 
-                    theHTMLValueHamming += "("+theHTMLValue[i]+")";
-                else
-                    theHTMLValueHamming += " "+theHTMLValue[i]+" ";
-            }
-        else
+
+        for (let i in theHTMLValue)
         {
-            theHTMLValueHamming = theHTMLValue;
+            let lbi = logBase(2,i);
+            if ( Math.floor(lbi)===lbi && i>0 && q===2) 
+                theHTMLValueHamming += "("+theHTMLValue[i]+")";
+            else
+                theHTMLValueHamming += " "+theHTMLValue[i]+" ";
         }
 
         for (var i = Math.ceil(theHTMLValueHamming.length/(3*charLength))-1; i >= 1; i--)
@@ -108,17 +104,17 @@ const XOR = (a,b,q) =>
     return ret;
 }
 
-const matrixDot = (A, B, q) => 
+const copyMatrix = (m) =>
 {
-    
-    const matrices = [A, B];
-    const cols = matrices.map((item) => item[0].length);
-    if (!matrices.every((item, i) => item.every((row) => row.length === cols[i])))
-        return console.error('All rows in a matrix must have equal amount of columns');
-    else if (cols[0] !== B.length)
-        return console.error('Amount of columns in the 1st matrix ('+cols[0]+') must match amount of rows in the 2nd matrix ('+B.length+')');
-    
-      
+    let ret = [];
+    for (let i in m) ret[i] = [...m[i]];
+    return ret;
+}
+
+const matrixDot = (A, B, q) =>
+{
+    A = copyMatrix(A);
+    B = copyMatrix(B);
     return A.map((rowA) =>
         B[0].map((_, colBIndex) =>
             rowA.reduce((acc, itemA, rowBIndex) => mod (acc + itemA * B[rowBIndex][colBIndex],q) , 0)
@@ -126,9 +122,9 @@ const matrixDot = (A, B, q) =>
     );
 }
 
-const matrixScalar = (A, s, q) =>
+const vectorScalar = (A, s, q) =>
 {
-    return A.map(row => row.map(e => mod(e*s,q)));
+    return A.map(x => mod(x*s,q));
 }
 
 const mod = (n, m) =>
@@ -136,9 +132,8 @@ const mod = (n, m) =>
   return ((n % m) + m) % m;
 }
 
-const transpose = (matrix) => {
-  let [row] = matrix
-  return row.map((value, column) => matrix.map(row => row[column]))
+const transpose = (m) => {
+  return m[0].map((x,i) => m.map(x => x[i]));
 }
 
 const isEqualVectors = (A, B) =>
@@ -200,9 +195,11 @@ const start = () =>
     //Forrás
     const input      = document.getElementById('input').value;
     const qElement   = document.getElementById('q');
-    if (qElement.value*1>16) qElement.value = "16"; else if (qElement.value*1<"2") qElement.value="2";
+    if (qElement.value*1>36) qElement.value = "36"; else if (qElement.value*1<"2") qElement.value="2"; //36 a maximum amit a Javascript ismer
     const q          = qElement.value*1;
     const charLength = Math.ceil(logBase(q,256)); // Base 2-be = 8; 16-ba: 2;
+
+    document.getElementById("charLength").value = charLength;
 
     if (input && input !== "")
     {
@@ -222,6 +219,8 @@ const start = () =>
     //Kódoló
     document.getElementById('parity').value = "";
     const eljaras = document.getElementById('eljaras').value;
+    const eG = document.getElementById('G'); eG.value = "";
+    const eH = document.getElementById('H'); eH.value = "";
 
     switch (1*eljaras) 
     {
@@ -233,14 +232,19 @@ const start = () =>
             c.setValue(u.getValue().repeat(3));
             c.updateHTMLValue(charLength);
             break;
-        case 3: //Hamming kód (1 dim block)
-
-            if (q*1===2) c.setValue(binary_hamming_encode(u.getValue()));
-            else         c.setValue(       hamming_encode(u.getValue(),q));
-            c.updateHTMLValueHamming(charLength,q);
+        case 3: //Bináris Hamming kód (1 dim block)
+            if (q*1===2) {
+                c.setValue(binary_hamming_encode(u.getValue()));
+                c.updateHTMLValueHamming(charLength,q);
+            }
+            else {
+                c.setValue("A q paraméter nem bináris (2)!");
+                c.updateHTMLValue(charLength);
+            }
             break;
-        case 4: //Hamming kód (több fix block) 
-            c.setValue("TODO");
+        case 4: //QF(q) Hamming kód (1 fix block) 
+            c.setValue(hamming_encode(u.getValue(),q));
+            c.updateHTMLValueHamming(k,q);
             break;
     }
 
@@ -252,12 +256,14 @@ const start = () =>
     e.setValueFromHTMLValue();
     if (e.getValue().length > n) e.setValue("0"); //reset if its bigger
     e.setValue(add0(c.getValue().length,e.getValue()));
-    e.updateHTMLValue(charLength);
+    e.updateHTMLValue(1*eljaras===4?n:charLength);
     v.setValue(XOR(c.getValue(),e.getValue(),q));
 
-    if (1*eljaras>2)
+    if      (1*eljaras===3)
         v.updateHTMLValueHamming(charLength,q);
-    else 
+    else if (1*eljaras===4)
+        v.updateHTMLValueHamming(k,q);
+    else
         v.updateHTMLValue(charLength);
 
 
@@ -277,9 +283,10 @@ const start = () =>
             break;
         case 3: //Hamming kód (1 dim block)
             if (q*1===2) u2.setValue(binary_hamming_decode(v.getValue()));
-            else         u2.setValue(       hamming_decode(v.getValue(),q));
+            else         u2.setValue("A q paraméter nem bináris (2)!");
             break;
         case 4: //Hamming kód (több fix block)
+            u2.setValue(hamming_decode(v.getValue(),q));
             break;
     }
 
@@ -302,7 +309,8 @@ const start = () =>
 
     M.updateTextFields();
     u.updateSize(); c.updateSize(); v.updateSize(); u2.updateSize(); e.updateSize();
-
+    eG.style.height = 'auto'; eG.style.height = eG.scrollHeight+'px';
+    eH.style.height = 'auto'; eH.style.height = eH.scrollHeight+'px';
 }
 
 //*/// Kódolás/Dekódolás és közvetlen segéd függvényeik
@@ -534,89 +542,212 @@ const binary_hamming_decode = (v) =>
     return ret;
 }
 
-/* Példa q=3 k=3 n=5 Hamming kódra
+// GF(q) Hammming kód
+
+/* Példa q=3 k=3 n=5 Hamming kódra 
+{
 
     q = 3;
+
+    Megnézzük, hogy prím-e? Prím.
+    Megkeressük a GF(q)-ban 
+
     H = 
     [
-        [1,1,0],
-        [1,2,1],
+        [1,1,1,0],
+        [1,2,0,1],
     ];
     G = 
     [
-        [1,0,0,mod(-1*1,q),mod(-1*1,q)],
-        [0,1,0,mod(-1*1,q),mod(-1*2,q)],
-        [0,0,1,mod(-1*0,q),mod(-1*1,q)],
+        [1,0,mod(-1*1,q),mod(-1*1,q)],
+        [0,1,mod(-1*1,q),mod(-1*2,q)],
     ] =
     [
-        [1,0,0,2,2],
-        [0,1,0,2,1],
-        [0,0,1,0,2],
+        [1,0,2,2],
+        [0,1,2,1],
     ];
 
-    u = [[0,2,1]]
+    u = [[0,2]]
 
-    c = u*G = [0,2,1,0,1]
+    c = u*G = [0,2, 1,2]
 
     e = [0,2,0,0,0]
 
-    v = e+c = [0,0,1,0,1]
+    v = e+c = [0,1, 1,2]
 
     sindrome = H*t(v) = [[2],[1]]
 
+    Megkeressük azt a H oszlopot amivel egyenlő a sindrome*error_scale mod q;
+    sindrome*error_scale mod 3 == [[1],[2]]*2 mod 3 == [[2],[4]] mod 3 == [[2],[1]] == H[1]
+    error_index = 1 //Második oszlop
+    error_scale = 2 //Eltérés mértéke
 
+    Kijavítjuk:
+    [0,1-error_scale mod q,1,2] == [0,2,1,2]
 
+    Majd elhagyjuk a paritás biteket (az utolsó 2-őt)
+    u' = [0,2]
+
+}
 */
 
+//Van jobb is de ez elég lesz most
+const isPrime = (num) => 
+{
+  if (num <= 1) return false;
+  if (num == 2) return true;
+
+  for (let i = 2; i <= num / 2; i++) {
+    if (num % i == 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+let H = [];
+let G = [];
+
+const mToString = (m,q) =>
+{
+    let str = "";
+    for(i in m) 
+    {
+        for (j in m[i]) str += m[i][j].toString(q)+"";
+        str+="\n";
+    }
+    return str;
+}
+
+const generate_H_G = (q) =>
+{
+    //Primitív elem keresés, előfeltétele, hogy q prím
+    let down = [];
+    for (var elem = 1; elem < q; elem++) 
+    {
+        let hatvanyok = [];
+        let kitevo = 0;
+
+        while(1)
+        {
+            let hatvany = mod(elem**kitevo,q);
+            if (kitevo>0 && hatvany===1) break;
+            hatvanyok.push(hatvany);
+            
+            kitevo++;
+        }
+
+        if (hatvanyok.length===q-1) {down=hatvanyok; break;} //Megan a primitív elem (rendje q-1)
+    }
+    //console.log(down);
+
+    let up = new Array(down.length).fill(1);
+      up.push(1);   up.push(0);
+    down.push(0); down.push(1);
+
+    H = [up,down];
+
+    document.getElementById("H").value = mToString(H,q);
+
+    G = [];
+    for (let y = 0; y < down.length-2; y++) 
+    {
+        G[y] = [];
+        for (let x = 0; x < down.length; x++)
+        {
+            if (x<down.length-2) //Egység mátrix
+            {
+                if (x===y) G[y][x]=1; 
+                else       G[y][x]=0;
+            }
+            else
+            {
+                if (down.length-x===2) G[y][x]=mod(-1*up[y], q);
+                else           /*===1*/G[y][x]=mod(-1*down[y],q);
+            }
+            
+        }
+    }
+
+    document.getElementById("G").value = mToString(G,q);
+}
+
+const str2num = (str,q) =>
+{
+    let num = [];
+    for (i in str)
+    {
+        num[i] = parseInt(str[i],q);
+    }
+    return [num];
+}
+
+const num2str = (num,q) =>
+{
+
+    let str = "";
+    for (i in num)
+    {
+        if (typeof num[i] === "object") str += num[i][0].toString(q);
+        else str += num[i].toString(q);
+    }
+    return str;
+}
 
 const hamming_encode = (u,q) =>
 {
-    q = 3;
-    
-    let G = 
-    [
-        [1,0,0,mod(-1*1,q),mod(-1*1,q)],
-        [0,1,0,mod(-1*1,q),mod(-1*2,q)],
-        [0,0,1,mod(-1*1,q),mod(-1*1,q)],
-    ];
 
-    u = [u.split('')];
+    if (!isPrime(q)) return 'A q ('+q+') nem prím!';
 
-    return matrixDot(u,G,q).toString(q).replaceAll(',','');
 
+    generate_H_G(q);
+
+    //console.log(H,G);
+
+    u = str2num(u,q);
+
+    if (u[0].length != G.length) return ('Az u hossza nem '+G.length+'!');
+
+    return num2str(matrixDot(u,G,q)[0],q);
 }
 
 const hamming_decode = (v,q) =>
 {
-    q = 3;
-    v = transpose([v.split('')]);
+    if (!isPrime(q)) return 'A q ('+q+') nem prím!';
 
-    H = 
-    [
-        [1,1,1,1,0],
-        [1,2,1,0,1],
-    ];
+    v = transpose(str2num(v,q));
+
+    if (H[0].length != v.length) return ('A v hossza nem '+H[0].length+'!');
 
     let sindrome = matrixDot(H,v,q);
+
+    
     document.getElementById('parity2').value = sindrome.toString(q).replaceAll(',','');
 
-    let ret = v.toString(q).replaceAll(',','');
 
-    if (sindrome.toString(q).replaceAll(',','').replaceAll('0','').length===0)
-        return ret.substr(0,3); //n=3
 
-    let th = transpose(H);
-    let ts = transpose(sindrome);
-    for (let error_index = 1; error_index < th.length; error_index++)
-        for (var error_scale = 0; error_scale < q; error_scale++)
-            if (isEqualVectors(th[error_index],matrixScalar(ts,error_scale,q)[0])) 
-            {
-                let correct_value = mod(ret[error_index]-error_scale,q);
-                document.getElementById('error_index').value = error_index;
-                document.getElementById('error_scale').value = error_scale;
-                ret = replaceAt(ret,error_index,correct_value);
-                return ret.substr(0,3); //n=3
-            }
+    //Javítás: megkeressük az indexet, és a legközelebbi kódszótól való eltérés mértékét.
+    if (sindrome.toString(q).replaceAll(',','').replaceAll('0','').length!==0)
+    {
+        let th = transpose(H);
+        let ts = transpose(sindrome)[0];
+        let error = {index:0,scale:q};
+        for (let error_index = 0; error_index < th.length; error_index++)
+            for (var error_scale = 0; error_scale < q; error_scale++)
+                if (isEqualVectors(vectorScalar(th[error_index],error_scale,q),ts)) 
+                {
+                    console.log(error_index,error_scale,);
+                    if (error.scale > error_scale) //Megkeressük a legközelebbi kódszót
+                        error = {index:error_index,scale:error_scale};
+                }
+        let correct_value = mod(v[error.index]-error.scale,q);
+        document.getElementById('error_index').value = error.index;
+        document.getElementById('error_scale').value = error.scale;
+        v[error.index] = [correct_value];
+    }
 
-    return ret;
+    
+    let ret = num2str(v);
+    return ret.substr(0,ret.length-2);
+
 }
