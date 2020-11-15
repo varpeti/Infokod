@@ -44,7 +44,7 @@ class Signal
     };
     setValueFromHTMLValue = () =>
     {
-        this._value = this._element.value.replace(/([^0123456789abcdefABCDEF])/gm, "");
+        this._value = this._element.value.replace(/([ \n()])/gm, "");
     }
     updateSize = () =>
     {
@@ -143,7 +143,7 @@ const isEqualVectors = (A, B) =>
     return true;
 }
 
-//*/// Hívott függvények
+/*/// Hívott függvények
 
 const set_hibas_bitek_label = () =>
 {
@@ -175,7 +175,7 @@ const generate_hibas_bitek_szazaleka = () =>
     const hibas_bitek = document.getElementById('hibas_bitek');
     const c_v = document.getElementById('c').value.replace(/([\r\n ()])/gm, "");;
     const e_v = document.getElementById('e').value;
-    hibas_bitek.value = ((e_v.split("1").length - 1)/c_v.length)*100;
+    hibas_bitek.value = ((e_v.split("0").length - 1)/c_v.length)*100;
 
     set_hibas_bitek_label();
 }
@@ -287,6 +287,7 @@ const start = () =>
             break;
         case 4: //Hamming kód (több fix block)
             u2.setValue(hamming_decode(v.getValue(),q));
+            console.log(u2.getValue());
             break;
     }
 
@@ -688,8 +689,7 @@ const num2str = (num,q) =>
     let str = "";
     for (i in num)
     {
-        if (typeof num[i] === "object") str += num[i][0].toString(q);
-        else str += num[i].toString(q);
+        str+=num[i].toString(q);
     }
     return str;
 }
@@ -725,7 +725,6 @@ const hamming_decode = (v,q) =>
     document.getElementById('parity2').value = sindrome.toString(q).replaceAll(',','');
 
 
-
     //Javítás: megkeressük az indexet, és a legközelebbi kódszótól való eltérés mértékét.
     if (sindrome.toString(q).replaceAll(',','').replaceAll('0','').length!==0)
     {
@@ -737,7 +736,7 @@ const hamming_decode = (v,q) =>
                 if (isEqualVectors(vectorScalar(th[error_index],error_scale,q),ts)) 
                 {
                     console.log(error_index,error_scale,);
-                    if (error.scale > error_scale) //Megkeressük a legközelebbi kódszót
+                    if (error.scale > error_scale)
                         error = {index:error_index,scale:error_scale};
                 }
         let correct_value = mod(v[error.index]-error.scale,q);
@@ -747,7 +746,14 @@ const hamming_decode = (v,q) =>
     }
 
     
-    let ret = num2str(v);
+    let ret = "";
+
+    for (i in v)
+    {
+        ret += v[i][0].toString(q);
+    }
+    
+    console.log(v,ret);
     return ret.substr(0,ret.length-2);
 
 }
