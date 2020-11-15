@@ -1,6 +1,8 @@
 const ctx  = document.getElementById('canvas');
 const log  = console.log;
 
+//*/// Classok
+
 class Signal
 {
     constructor(elementID) 
@@ -19,18 +21,23 @@ class Signal
 
         this._element.value = theHTMLValue;
     };
-    updateHTMLValueHamming = (charLength) => 
+    updateHTMLValueHamming = (charLength,q) => 
     {
         let theHTMLValue = this._value;
 
         let theHTMLValueHamming = "";
-        for (let i in theHTMLValue)
+        if (q===2)
+            for (let i in theHTMLValue)
+            {
+                let lbi = logBase(2,i);
+                if ( Math.floor(lbi)===lbi && i>0) 
+                    theHTMLValueHamming += "("+theHTMLValue[i]+")";
+                else
+                    theHTMLValueHamming += " "+theHTMLValue[i]+" ";
+            }
+        else
         {
-            let lbi = logBase(2,i);
-            if ( Math.floor(lbi)===lbi && i>0 ) 
-                theHTMLValueHamming += "("+theHTMLValue[i]+")";
-            else
-                theHTMLValueHamming += " "+theHTMLValue[i]+" ";
+            theHTMLValueHamming = theHTMLValue;
         }
 
         for (var i = Math.ceil(theHTMLValueHamming.length/(3*charLength))-1; i >= 1; i--)
@@ -50,6 +57,8 @@ class Signal
         //M.textareaAutoResize(this._element);
     }
 }
+
+//*/// Segéd függvények
 
 //Eh biztos van jobb megoldás mint a 2 hatványokra (v--; [v |= 2**i] v++;)
 const roundUpSQR = (v) => { let i=1;while(v>i*i) i++; return i*i;}
@@ -95,9 +104,51 @@ const add0 = (n,str) =>
 const XOR = (a,b,q) =>
 {
     let ret = "";
-    for (i in a) ret += ( parseInt(a[i],q) ^ parseInt(b[i],q) ).toString(q); //Bitwise XOR
+    for (i in a) ret += mod( parseInt(a[i],q)+parseInt(b[i],q), q).toString(q); //Bitwise XOR
     return ret;
 }
+
+const matrixDot = (A, B, q) => 
+{
+    
+    const matrices = [A, B];
+    const cols = matrices.map((item) => item[0].length);
+    if (!matrices.every((item, i) => item.every((row) => row.length === cols[i])))
+        return console.error('All rows in a matrix must have equal amount of columns');
+    else if (cols[0] !== B.length)
+        return console.error('Amount of columns in the 1st matrix ('+cols[0]+') must match amount of rows in the 2nd matrix ('+B.length+')');
+    
+      
+    return A.map((rowA) =>
+        B[0].map((_, colBIndex) =>
+            rowA.reduce((acc, itemA, rowBIndex) => mod (acc + itemA * B[rowBIndex][colBIndex],q) , 0)
+        )
+    );
+}
+
+const matrixScalar = (A, s, q) =>
+{
+    return A.map(row => row.map(e => mod(e*s,q)));
+}
+
+const mod = (n, m) =>
+{
+  return ((n % m) + m) % m;
+}
+
+const transpose = (matrix) => {
+  let [row] = matrix
+  return row.map((value, column) => matrix.map(row => row[column]))
+}
+
+const isEqualVectors = (A, B) =>
+{
+    if (A.length!==B.length) return false;
+    for (i in A) if (A[i] !== B[i]) return false;
+    return true;
+}
+
+//*/// Hívott függvények
 
 const set_hibas_bitek_label = () =>
 {
@@ -134,6 +185,8 @@ const generate_hibas_bitek_szazaleka = () =>
     set_hibas_bitek_label();
 }
 
+//*/// Logika
+
 const start = () =>
 {   
     log("---");
@@ -148,7 +201,7 @@ const start = () =>
     const input      = document.getElementById('input').value;
     const qElement   = document.getElementById('q');
     if (qElement.value*1>16) qElement.value = "16"; else if (qElement.value*1<"2") qElement.value="2";
-    const q          = qElement.value;
+    const q          = qElement.value*1;
     const charLength = Math.ceil(logBase(q,256)); // Base 2-be = 8; 16-ba: 2;
 
     if (input && input !== "")
@@ -162,6 +215,9 @@ const start = () =>
     {
         u.setValueFromHTMLValue();
     }
+
+    const k = u.getValue().length;
+    document.getElementById('k').value = k;
 
     //Kódoló
     document.getElementById('parity').value = "";
@@ -181,29 +237,35 @@ const start = () =>
 
             if (q*1===2) c.setValue(binary_hamming_encode(u.getValue()));
             else         c.setValue(       hamming_encode(u.getValue(),q));
-            c.updateHTMLValueHamming(charLength);
+            c.updateHTMLValueHamming(charLength,q);
             break;
         case 4: //Hamming kód (több fix block) 
             c.setValue("TODO");
             break;
     }
 
+    const n = c.getValue().length;
+    document.getElementById('n').value = n;
+
     //Csatorna
     const e = new Signal('e');
     e.setValueFromHTMLValue();
-    if (e.getValue().length > c.getValue().length) e.setValue("0"); //reset if its bigger
+    if (e.getValue().length > n) e.setValue("0"); //reset if its bigger
     e.setValue(add0(c.getValue().length,e.getValue()));
     e.updateHTMLValue(charLength);
     v.setValue(XOR(c.getValue(),e.getValue(),q));
 
     if (1*eljaras>2)
-        v.updateHTMLValueHamming(charLength);
+        v.updateHTMLValueHamming(charLength,q);
     else 
         v.updateHTMLValue(charLength);
 
 
     //Dekódoló
     document.getElementById('parity2').value = "";
+    document.getElementById('error_index').value = "";
+    document.getElementById('error_scale').value = "";
+
 
     switch (1*eljaras) 
     {
@@ -243,9 +305,15 @@ const start = () =>
 
 }
 
+//*/// Kódolás/Dekódolás és közvetlen segéd függvényeik
+
+// Redundáns 2,3
+
 //Összemergeli a kapott mátrix értékeit soronként, úgy megszámolja a egyezések számát, és amelyik érték több az lesz az érték, egyezés esetén '?';
 const merger = (arr) =>
 {   
+    if (arr.length===0) return;
+
     let ret = "";
     for (var i = 0; i < arr[0].length; i++) 
     {   
@@ -254,7 +322,7 @@ const merger = (arr) =>
         for (j in arr) for (let k = j; k < arr.length; k++)
         {
             if (j===k) continue;
-            console.log(arr[k][i],arr[j][i])
+            //console.log(arr[k][i],arr[j][i])
             if (arr[k][i] === arr[j][i]) 
             {
                 if (!(arr[k][i] in values)) values[arr[k][i]]=0;
@@ -262,7 +330,7 @@ const merger = (arr) =>
             }
         }
 
-        console.log(values);
+        //console.log(values);
 
         //Kiválasszuk a legnagyobbat, ha két legnagyobb megegyezik "?"-et add vissza.
         let maxV = {j:"?",v:-1}
@@ -294,6 +362,8 @@ const red = (v,u2,divident) =>
 
     u2.setValue(merger(chunks));
 }
+
+// Bináris Hamming kód
 
 /* 
 {
@@ -464,13 +534,89 @@ const binary_hamming_decode = (v) =>
     return ret;
 }
 
+/* Példa q=3 k=3 n=5 Hamming kódra
+
+    q = 3;
+    H = 
+    [
+        [1,1,0],
+        [1,2,1],
+    ];
+    G = 
+    [
+        [1,0,0,mod(-1*1,q),mod(-1*1,q)],
+        [0,1,0,mod(-1*1,q),mod(-1*2,q)],
+        [0,0,1,mod(-1*0,q),mod(-1*1,q)],
+    ] =
+    [
+        [1,0,0,2,2],
+        [0,1,0,2,1],
+        [0,0,1,0,2],
+    ];
+
+    u = [[0,2,1]]
+
+    c = u*G = [0,2,1,0,1]
+
+    e = [0,2,0,0,0]
+
+    v = e+c = [0,0,1,0,1]
+
+    sindrome = H*t(v) = [[2],[1]]
+
+
+
+*/
+
 
 const hamming_encode = (u,q) =>
 {
-    return "TODO";
+    q = 3;
+    
+    let G = 
+    [
+        [1,0,0,mod(-1*1,q),mod(-1*1,q)],
+        [0,1,0,mod(-1*1,q),mod(-1*2,q)],
+        [0,0,1,mod(-1*1,q),mod(-1*1,q)],
+    ];
+
+    u = [u.split('')];
+
+    return matrixDot(u,G,q).toString(q).replaceAll(',','');
+
 }
 
 const hamming_decode = (v,q) =>
 {
-    return "TODO";
+    q = 3;
+    v = transpose([v.split('')]);
+
+    H = 
+    [
+        [1,1,1,1,0],
+        [1,2,1,0,1],
+    ];
+
+    let sindrome = matrixDot(H,v,q);
+    document.getElementById('parity2').value = sindrome.toString(q).replaceAll(',','');
+
+    let ret = v.toString(q).replaceAll(',','');
+
+    if (sindrome.toString(q).replaceAll(',','').replaceAll('0','').length===0)
+        return ret.substr(0,3); //n=3
+
+    let th = transpose(H);
+    let ts = transpose(sindrome);
+    for (let error_index = 1; error_index < th.length; error_index++)
+        for (var error_scale = 0; error_scale < q; error_scale++)
+            if (isEqualVectors(th[error_index],matrixScalar(ts,error_scale,q)[0])) 
+            {
+                let correct_value = mod(ret[error_index]-error_scale,q);
+                document.getElementById('error_index').value = error_index;
+                document.getElementById('error_scale').value = error_scale;
+                ret = replaceAt(ret,error_index,correct_value);
+                return ret.substr(0,3); //n=3
+            }
+
+    return ret;
 }

@@ -29,9 +29,17 @@
    <a id="random" class="waves-effect waves-light btn-large" onclick="const a = document.getElementById('input'); a.value=randomWord(); a.oninput();" >Random</a>
   </div>
   <div style="padding-left: 5%" class="row">
-   <div class="input-field col s6">
+   <div class="input-field col s3">
     <input id="q" type="number" onchange="start();" class="active" value="2" min="2" max="16">
     <label for="q">q:</label>
+   </div>
+   <div class="input-field col s3">
+    <input id="k" type="text" readonly="true" class="active">
+    <label for="k">k:</label>
+   </div>
+   <div class="input-field col s3">
+    <input id="n" type="text" readonly="true" class="active">
+    <label for="n">n:</label>
    </div>
   </div>
  </div>
@@ -41,6 +49,7 @@
    <div class="input-field">
     <textarea id="u" type="text" class="materialize-textarea active" onInput="start();"></textarea>
     <label for="u">u:</label>
+    <small>(Szerkezthető, ha az Input mező üres)</small>
    </div>
   </div>
  </div>
@@ -107,13 +116,17 @@
  <div id="dekodolo" style="background-color: #fff; border-radius: 60px; margin: 10px 10%; box-shadow: 1px 1px 5px #555555">
   <h5 style="padding: 2% 0 0 5%">Dekódoló</h5>
   <div style="padding-left: 5%" class="row">
-   <div class="input-field s6 col">
+   <div class="input-field s3 col">
     <input id="parity2" type="text" readonly="true" class="active">
     <label for="parity2">Parity:</label>
    </div>
-   <div class="input-field s6 col">
+   <div class="input-field s3 col">
     <input id="error_index" type="text" readonly="true" class="active">
     <label for="error_index">Error index:</label>
+   </div>
+   <div class="input-field s3 col">
+    <input id="error_scale" type="text" readonly="true" class="active">
+    <label for="error_index">Error scale:</label>
    </div>
   </div>
  </div>
