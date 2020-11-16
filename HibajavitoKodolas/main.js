@@ -555,18 +555,16 @@ const binary_hamming_decode = (v) =>
 
 // GF(q) Hammming kód
 
-/* Példa q=3 k=3 n=5 Hamming kódra 
+/* Példa  q=3 k=3 n=5 Hamming kódra
 {
 
-    q = 3;
-
-    Megnézzük, hogy prím-e? Prím.
+    Megnézzük, hogy q prím-e? Prím.
     Megkeressük a GF(q)-ban a primitív elemet:
     elem    | hatványok    | rend
     1       | 1            | 1
     2       | 1 2          | 2 (primitív)
 
-    Ebből feírjuk a paritás mátrixot:
+    Ebből felírjuk a paritás mátrixot:
     H = 
     [
         [1,1,1,0], // 1 1 .. 1 0
@@ -592,12 +590,12 @@ const binary_hamming_decode = (v) =>
 
     v = e+c = [0,1, 1,2]
 
-    sindrome = H*t(v) = [[2],[1]]
+    H*t(v) = [[2],[1]]
 
-    Megkeressük azt a H oszlopot amivel egyenlő a sindrome*error_scale mod q;
-    sindrome*error_scale mod 3 == [[1],[2]]*2 mod 3 == [[2],[4]] mod 3 == [[2],[1]] == H[1]
+    Megkeressük azt a H oszlopot (error_index) amit megszorozva error_scale-el (mod q) egyenlő a H*t(v)-vel;
+    error_scale*H[error_index] mod 3 == H*t(v) == [[2],[1]]
     error_index = 1 //Második oszlop
-    error_scale = 2 //Eltérés mértéke
+    error_scale = 2 //Eltérés mértéke 2
 
     Kijavítjuk:
     [0,1-error_scale mod q,1,2] == [0,2,1,2]
@@ -712,41 +710,29 @@ const num2str = (num,q) =>
 
 const hamming_encode = (u,q) =>
 {
-
-    //console.log(H,G);
-
     u = str2num(u,q);
-
-    //if (u[0].length != G.length) return ('Az u hossza nem '+G.length+'!');
-
     return num2str(matrixDot(u,G,q)[0],q);
 }
 
 const hamming_decode = (v,q) =>
 {
-    //if (!isPrime(q)) return 'A q ('+q+') nem prím!';
-
     v = transpose(str2num(v,q));
-
-    //if (H[0].length != v.length) return ('A v hossza nem '+H[0].length+'!');
-
-    let sindrome = matrixDot(H,v,q);
-
+    let p = matrixDot(H,v,q);
     
-    document.getElementById('parity2').value = sindrome.toString(q).replaceAll(',','');
+    document.getElementById('parity2').value = p.toString(q).replaceAll(',','');
 
 
     //Javítás: megkeressük az indexet, és a legközelebbi kódszótól való eltérés mértékét.
-    if (sindrome.toString(q).replaceAll(',','').replaceAll('0','').length!==0)
+    if (p.toString(q).replaceAll(',','').replaceAll('0','').length!==0)
     {
         let th = transpose(H);
-        let ts = transpose(sindrome)[0];
+        let ts = transpose(p)[0];
         let error = {index:0,scale:q};
         for (let error_index = 0; error_index < th.length; error_index++)
             for (var error_scale = 0; error_scale < q; error_scale++)
                 if (isEqualVectors(vectorScalar(th[error_index],error_scale,q),ts)) 
                 {
-                    console.log(error_index,error_scale,);
+                    //console.log(error_index,error_scale);
                     if (error.scale > error_scale)
                         error = {index:error_index,scale:error_scale};
                 }
@@ -757,15 +743,11 @@ const hamming_decode = (v,q) =>
     }
 
     
+    //Stringé alakítjuk
     let ret = "";
-
-    for (i in v)
-    {
-        ret += v[i][0].toString(q);
-    }
+    for (i in v) ret += v[i][0].toString(q);
     
-    console.log(v,ret);
-    return ret.substr(0,ret.length-2);
+    return ret.substr(0,ret.length-2); //Dekódolás: elhagyjuk a paritás biteket (utolsó 2 bitet)
 
 }
 
