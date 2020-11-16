@@ -770,5 +770,5 @@ const hamming_decode = (v,q) =>
 ```
 
 
-- Ha a paritás 0, akkor nincs hiba, [v a kódszó](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=A q %3D 17&u=3e1f6b1f3a1f2f34&q=17&eljaras=4&e=0), vagy annyi hiba történt, hogy [v egy másik kódszó](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=ABC&u=005a060061&q=11&eljaras=4&e=0000000001a5).
+- Ha a paritás 0, akkor nincs hiba, [v a kódszó](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=A%20q%20%3D 17&u=3e1f6b1f3a1f2f34&q=17&eljaras=4&e=0), vagy annyi hiba történt, hogy [v egy másik kódszó](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=ABC&u=005a060061&q=11&eljaras=4&e=0000000001a5).
 - Ha a paritás nem 0 akkor, [egy](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=()&u=055056&q=7&eljaras=4&e=00006000), vagy [több](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=%40&u=0224&q=5&eljaras=4&e=010400) hiba történt, tehát v nem kódszó, meg kell keresni a hozzá legközelebbi kódszót. Javítás: Megkeressük azt a H oszlopot (error_index) amit megszorozva error_scale-el (mod q) egyenlő a H*t(v)-vel.
