@@ -24,7 +24,7 @@
   <h5 style="padding: 2% 0 0 5%">Forrás</h5>
   <div style="padding-left: 5%" class="row">
    <div class="input-field col s6">
-    <input id="input" type="text" oninput="start();" class="active" value="Hello!">
+    <input id="input" type="text" oninput="start();" class="active">
     <label for="input">Input:</label>
    </div>
    <a id="random" class="waves-effect waves-light btn-large" onclick="const a = document.getElementById('input'); a.value=randomWord(); a.oninput();" >Random</a>
@@ -176,6 +176,6 @@
 
 
  <canvas id="canvas"></canvas>
- <script type="text/javascript">start();</script>
+ <script type="text/javascript">init();</script>
   </body>
 </html>

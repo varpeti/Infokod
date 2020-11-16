@@ -213,7 +213,7 @@ const start = () =>
         u.setValueFromHTMLValue();
     }
 
-    const k = u.getValue().length;
+    let k = u.getValue().length;
     document.getElementById('k').value = k;
 
     //Kódoló
@@ -242,7 +242,14 @@ const start = () =>
                 c.updateHTMLValue(charLength);
             }
             break;
-        case 4: //QF(q) Hamming kód (1 fix block) 
+        case 4: //QF(q) Hamming kód (1 fix block)
+
+            if (!isPrime(q)) { c.setValue('A q ('+q+') nem prím!'); c.updateHTMLValue(c.getValue().length); break;}
+            generate_H_G(q);
+            if      (u.getValue().length>G.length) {u.setValue(u.getValue().substr(0,G.length)); u.updateHTMLValue(charLength);}
+            else if (u.getValue().length<G.length) {u.setValue(add0(G.length,u.getValue()));     u.updateHTMLValue(charLength);}
+            k = G.length;
+            document.getElementById('k').value = k;
             c.setValue(hamming_encode(u.getValue(),q));
             c.updateHTMLValueHamming(k,q);
             break;
@@ -285,9 +292,9 @@ const start = () =>
             if (q*1===2) u2.setValue(binary_hamming_decode(v.getValue()));
             else         u2.setValue("A q paraméter nem bináris (2)!");
             break;
-        case 4: //Hamming kód (több fix block)
+        case 4: //QF(q) Hamming kód (1 fix block)
+            if (!isPrime(q)) { u2.setValue('-'); break;}
             u2.setValue(hamming_decode(v.getValue(),q));
-            console.log(u2.getValue());
             break;
     }
 
@@ -312,6 +319,9 @@ const start = () =>
     u.updateSize(); c.updateSize(); v.updateSize(); u2.updateSize(); e.updateSize();
     eG.style.height = 'auto'; eG.style.height = eG.scrollHeight+'px';
     eH.style.height = 'auto'; eH.style.height = eH.scrollHeight+'px';
+
+    // setUrl parameters
+    setUrl();
 }
 
 //*/// Kódolás/Dekódolás és közvetlen segéd függvényeik
@@ -551,13 +561,19 @@ const binary_hamming_decode = (v) =>
     q = 3;
 
     Megnézzük, hogy prím-e? Prím.
-    Megkeressük a GF(q)-ban 
+    Megkeressük a GF(q)-ban a primitív elemet:
+    elem    | hatványok    | rend
+    1       | 1            | 1
+    2       | 1 2          | 2 (primitív)
 
+    Ebből feírjuk a paritás mátrixot:
     H = 
     [
-        [1,1,1,0],
-        [1,2,0,1],
+        [1,1,1,0], // 1 1 .. 1 0
+        [1,2,0,1], // primitív elem hatványok .. 0 1
     ];
+    
+    Felírjuk a generátor mátrixot:
     G = 
     [
         [1,0,mod(-1*1,q),mod(-1*1,q)],
@@ -697,27 +713,22 @@ const num2str = (num,q) =>
 const hamming_encode = (u,q) =>
 {
 
-    if (!isPrime(q)) return 'A q ('+q+') nem prím!';
-
-
-    generate_H_G(q);
-
     //console.log(H,G);
 
     u = str2num(u,q);
 
-    if (u[0].length != G.length) return ('Az u hossza nem '+G.length+'!');
+    //if (u[0].length != G.length) return ('Az u hossza nem '+G.length+'!');
 
     return num2str(matrixDot(u,G,q)[0],q);
 }
 
 const hamming_decode = (v,q) =>
 {
-    if (!isPrime(q)) return 'A q ('+q+') nem prím!';
+    //if (!isPrime(q)) return 'A q ('+q+') nem prím!';
 
     v = transpose(str2num(v,q));
 
-    if (H[0].length != v.length) return ('A v hossza nem '+H[0].length+'!');
+    //if (H[0].length != v.length) return ('A v hossza nem '+H[0].length+'!');
 
     let sindrome = matrixDot(H,v,q);
 
@@ -756,4 +767,38 @@ const hamming_decode = (v,q) =>
     console.log(v,ret);
     return ret.substr(0,ret.length-2);
 
+}
+
+
+//*/// Argument feldogozó, kezdő érték beállító
+const init = () =>
+{
+    const getUrlVars = () =>
+    {
+        const vars = {};
+        const parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (m, key, value) {
+            vars[key] = value;
+        });
+        return vars;
+    }
+    let vars = getUrlVars();
+    
+    document.getElementById("input").value      = vars.input?decodeURIComponent(vars.input): vars.u?"":"Hello!";
+    document.getElementById("u").value          = vars.u?vars.u:"0";
+    document.getElementById("q").value          = vars.q?vars.q:"2";
+    document.getElementById("eljaras").value    = vars.eljaras?vars.eljaras:"1";
+    document.getElementById("e").value          = vars.e?vars.e:"0";
+    start();
+}
+
+const setUrl = () =>
+{
+    let args = 
+    '?input='+encodeURIComponent(document.getElementById("input").value) +
+    '&u='+document.getElementById("u").value +
+    '&q='+document.getElementById("q").value +
+    '&eljaras='+document.getElementById("eljaras").value +
+    '&e='+document.getElementById("e").value;
+    
+    window.history.pushState("", "Hibajavító kódolás", args);
 }
