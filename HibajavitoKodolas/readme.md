@@ -25,8 +25,8 @@ c = u.repeate(2);
 
 ##### Hiba felismerés:
 Az üzenetet elfelezzük, és összehasonlítjuk őket, bitenként.
-- Ha megegyeznek, akkor [nics hiba](index.html?input=Ελληνικά&u=phqjqjqfqlqhqiq4&q=36&eljaras=1&e=0), (vagy [két egyforma hiba van](index.html?input=abc&u=5c5d5e&q=17&eljaras=1&e=000e00000e00) ), ekkor kiírjuk a bitet,
-- Ha nem egyeznek meg akkor nem tudjuk eldönteni, ez [egyik helyes-e](index.html?input=Lap&u=485c6a&q=17&eljaras=1&e=030000000000) (és melyik), vagy [mindkettő rossz](index.html?input=Lap&u=485c6a&q=17&eljaras=1&e=0200000g0000). Ilyenkor "?" írunk
+- Ha megegyeznek, akkor [nics hiba](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=Ελληνικά&u=phqjqjqfqlqhqiq4&q=36&eljaras=1&e=0), (vagy [két egyforma hiba van](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=abc&u=5c5d5e&q=17&eljaras=1&e=000e00000e00) ), ekkor kiírjuk a bitet,
+- Ha nem egyeznek meg akkor nem tudjuk eldönteni, ez [egyik helyes-e](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=Lap&u=485c6a&q=17&eljaras=1&e=030000000000) (és melyik), vagy [mindkettő rossz](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=Lap&u=485c6a&q=17&eljaras=1&e=0200000g0000). Ilyenkor "?" írunk
 ```
     parts = v.splitInto(2);
 
@@ -49,9 +49,9 @@ c = u.repeate(3);
 
 ##### Hiba felismerés, javítás:
 Az üzenetet elharmadoljuk, és összehasonlítjuk őket, bitenként.
-- Ha megegyeznek, akkor [nincs hiba](index.html?input=A&u=41&q=16&eljaras=2&e=000000), (vagy [három egyforma hiba van](index.html?input=A&u=41&q=16&eljaras=2&e=0a0a0a)), ekkor kiírjuk a bitet, 
-- Ha a 2 megegyezik, akkor [egy hiba van](index.html?input=A&u=41&q=16&eljaras=2&e=000a00), (vagy [két egyforma hiba van](index.html?input=A&u=41&q=16&eljaras=2&e=000a0a)), ekkor kiírjuk ez egyező biteket,
-- Ha mind 3 különbözik, akkor [3 hiba van](index.html?input=A&u=41&q=16&eljaras=2&e=ff0023), nem tudunk javítani "?"-et írunk.
+- Ha megegyeznek, akkor [nincs hiba](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=A&u=41&q=16&eljaras=2&e=000000), (vagy [három egyforma hiba van](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=A&u=41&q=16&eljaras=2&e=0a0a0a)), ekkor kiírjuk a bitet, 
+- Ha a 2 megegyezik, akkor [egy hiba van](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=A&u=41&q=16&eljaras=2&e=000a00), (vagy [két egyforma hiba van](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=A&u=41&q=16&eljaras=2&e=000a0a)), ekkor kiírjuk ez egyező biteket,
+- Ha mind 3 különbözik, akkor [3 hiba van](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=A&u=41&q=16&eljaras=2&e=ff0023), nem tudunk javítani "?"-et írunk.
 
 ##### Dekódolás:
 Elhagyjuk a második 2/3-át.
@@ -338,7 +338,7 @@ Megjegyzés 3:
 
 ```
 
-[A példa](index.html?input=V&&q=2&eljaras=3&e=0000010000000000)
+[A példa](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=V&&q=2&eljaras=3&e=0000010000000000)
 
 #### Kódolás
 
@@ -389,8 +389,8 @@ const binary_hamming_encode = (u) =>
 #### Hiba felismerés, javítás:
 
 Összeadom az 1-es bitekhez tartozó bináris indexeket, így megkapom a paritást.
-- Ha a paritás 0, akkor nincs hiba, [v a kódszó](index.html?input=ABC&u=010000010100001001000011&q=2&eljaras=3&e=0), vagy annyi hiba történt, hogy [v egy másik kódszó](index.html?input=ABC&u=010000010100001001000011&q=2&eljaras=3&e=00001000100000001000000000000111).
-- Ha a paritás nem 0 akkor, [egy](index.html?input=ABC&u=010000010100001001000011&q=2&eljaras=3&e=100), vagy [több](index.html?input=ABC&u=010000010100001001000011&q=2&eljaras=3&e=11111110000) hiba történt, tehát v nem kódszó, meg kell keresni a hozzá legközelebbi kódszót. Javítás: a paritás megadja azt az indexet, ahol meg kell forgatni a bit-et.
+- Ha a paritás 0, akkor nincs hiba, [v a kódszó](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=ABC&u=010000010100001001000011&q=2&eljaras=3&e=0), vagy annyi hiba történt, hogy [v egy másik kódszó](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=ABC&u=010000010100001001000011&q=2&eljaras=3&e=00001000100000001000000000000111).
+- Ha a paritás nem 0 akkor, [egy](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=ABC&u=010000010100001001000011&q=2&eljaras=3&e=100), vagy [több](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=ABC&u=010000010100001001000011&q=2&eljaras=3&e=11111110000) hiba történt, tehát v nem kódszó, meg kell keresni a hozzá legközelebbi kódszót. Javítás: a paritás megadja azt az indexet, ahol meg kell forgatni a bit-et.
 
 #### Dekódolás:
 Elhagyjuk a paritás biteket.
@@ -658,7 +658,7 @@ Mivel ez a kód 1 hibát tud javítani, ezért ```dmin>=3```, de a Singleton-kor
 
 }
 ```
-[A példa](index.html?input=&u=02&q=3&eljaras=4&e=0200)
+[A példa](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=&u=02&q=3&eljaras=4&e=0200)
 
 #### A megvalósítás
 
@@ -770,5 +770,5 @@ const hamming_decode = (v,q) =>
 ```
 
 
-- Ha a paritás 0, akkor nincs hiba, [v a kódszó](index.html?input=A q %3D 17&u=3e1f6b1f3a1f2f34&q=17&eljaras=4&e=0), vagy annyi hiba történt, hogy [v egy másik kódszó](index.html?input=ABC&u=005a060061&q=11&eljaras=4&e=0000000001a5).
-- Ha a paritás nem 0 akkor, [egy](index.html?input=()&u=055056&q=7&eljaras=4&e=00006000), vagy [több](index.html?input=%40&u=0224&q=5&eljaras=4&e=010400) hiba történt, tehát v nem kódszó, meg kell keresni a hozzá legközelebbi kódszót. Javítás: Megkeressük azt a H oszlopot (error_index) amit megszorozva error_scale-el (mod q) egyenlő a H*t(v)-vel.
+- Ha a paritás 0, akkor nincs hiba, [v a kódszó](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=A q %3D 17&u=3e1f6b1f3a1f2f34&q=17&eljaras=4&e=0), vagy annyi hiba történt, hogy [v egy másik kódszó](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=ABC&u=005a060061&q=11&eljaras=4&e=0000000001a5).
+- Ha a paritás nem 0 akkor, [egy](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=()&u=055056&q=7&eljaras=4&e=00006000), vagy [több](https://varpeti.github.io/Infokod/HibajavitoKodolas/index.html?input=%40&u=0224&q=5&eljaras=4&e=010400) hiba történt, tehát v nem kódszó, meg kell keresni a hozzá legközelebbi kódszót. Javítás: Megkeressük azt a H oszlopot (error_index) amit megszorozva error_scale-el (mod q) egyenlő a H*t(v)-vel.
